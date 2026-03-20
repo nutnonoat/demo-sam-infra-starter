@@ -61,6 +61,7 @@ After deploy, note these values:
 | `RdsDbName` | App teams (for Secrets Manager update) |
 | `CognitoUserPoolId` | App teams |
 | `CognitoUserPoolArn` | App teams |
+| `CognitoGroupName` | App teams (as AllowedCognitoGroup) |
 | `RdsAdminSecretArn` | Infra team only - do NOT share |
 | `RdsSecurityGroupId` | Infra team |
 | `BastionInstanceId` | Infra team - connect via Session Manager |
