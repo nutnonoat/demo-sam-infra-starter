@@ -22,6 +22,9 @@ Parameters:
   PrivateSubnet2Cidr:
     Type: String
     Default: "10.0.2.0/24"
+  PublicSubnetCidr:
+    Type: String
+    Default: "10.0.100.0/24"
   RdsInstanceClass:
     Type: String
     Default: db.t4g.large
@@ -108,6 +111,67 @@ Resources:
     Properties:
       SubnetId: !Ref PrivateSubnet2
       RouteTableId: !Ref PrivateRouteTable
+
+  # ── Public Subnet ──
+  PublicSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref Vpc
+      CidrBlock: !Ref PublicSubnetCidr
+      AvailabilityZone: !Select [0, !GetAZs ""]
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub "${Project}-${Environment}-public"
+        - Key: project
+          Value: !Ref Project
+        - Key: environment
+          Value: !Ref Environment
+
+  # ── Internet Gateway ──
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Sub "${Project}-${Environment}-igw"
+        - Key: project
+          Value: !Ref Project
+        - Key: environment
+          Value: !Ref Environment
+
+  InternetGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref Vpc
+      InternetGatewayId: !Ref InternetGateway
+
+  # ── Route Table for Public Subnet ──
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref Vpc
+      Tags:
+        - Key: Name
+          Value: !Sub "${Project}-${Environment}-public-rt"
+        - Key: project
+          Value: !Ref Project
+        - Key: environment
+          Value: !Ref Environment
+
+  PublicRoute:
+    Type: AWS::EC2::Route
+    DependsOn: InternetGatewayAttachment
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+  PublicSubnetRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet
+      RouteTableId: !Ref PublicRouteTable
 
   # ── VPC Endpoint: Secrets Manager ──
   SecretsManagerEndpoint:
@@ -230,6 +294,11 @@ Outputs:
     Value: !Sub "${PrivateSubnet1},${PrivateSubnet2}"
     Export:
       Name: !Sub "${Project}-${Environment}-PrivateSubnetIds"
+  PublicSubnetId:
+    Description: Public subnet ID (for CloudShell VPC environment or bastion)
+    Value: !Ref PublicSubnet
+    Export:
+      Name: !Sub "${Project}-${Environment}-PublicSubnetId"
   RdsEndpoint:
     Description: RDS endpoint (provide to app teams as RdsHost)
     Value: !GetAtt RdsInstance.Endpoint.Address
