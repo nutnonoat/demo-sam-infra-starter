@@ -83,7 +83,7 @@ PGPASSWORD=$DB_PASS psql -h $DB_HOST -U $DB_USER -d $DB_NAME
 -- Replace 'myapp' with the app name
 CREATE USER myapp_user WITH PASSWORD 'generate-a-strong-password';
 CREATE SCHEMA myapp AUTHORIZATION myapp_user;
-GRANT CONNECT ON DATABASE appdb TO myapp_user;
+GRANT CONNECT ON DATABASE <RdsDbName> TO myapp_user;
 -- myapp_user can only access the myapp schema
 ```
 
@@ -107,7 +107,7 @@ AllowedCognitoGroup:  myapp-users
 VpcId:                <from stack outputs>
 PrivateSubnetIds:     <from stack outputs>
 RDS endpoint:         <RdsEndpoint from stack outputs>
-Database name:        appdb
+Database name:        <RdsDbName from stack outputs>
 Database username:    myapp_user
 Database password:    <the password you generated in step 2>
 ```
