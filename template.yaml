@@ -47,6 +47,10 @@ Resources:
       Tags:
         - Key: Name
           Value: !Sub "${ProjectName}-${Environment}-vpc"
+        - Key: project
+          Value: !Ref ProjectName
+        - Key: env
+          Value: !Ref Environment
 
   # ── Private Subnets (2 AZs) ──
   PrivateSubnet1:
@@ -58,6 +62,10 @@ Resources:
       Tags:
         - Key: Name
           Value: !Sub "${ProjectName}-${Environment}-private-1"
+        - Key: project
+          Value: !Ref ProjectName
+        - Key: env
+          Value: !Ref Environment
 
   PrivateSubnet2:
     Type: AWS::EC2::Subnet
@@ -68,6 +76,10 @@ Resources:
       Tags:
         - Key: Name
           Value: !Sub "${ProjectName}-${Environment}-private-2"
+        - Key: project
+          Value: !Ref ProjectName
+        - Key: env
+          Value: !Ref Environment
 
   # ── Route Table for Private Subnets ──
   PrivateRouteTable:
@@ -77,6 +89,10 @@ Resources:
       Tags:
         - Key: Name
           Value: !Sub "${ProjectName}-${Environment}-private-rt"
+        - Key: project
+          Value: !Ref ProjectName
+        - Key: env
+          Value: !Ref Environment
 
   PrivateSubnet1RouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
@@ -118,6 +134,10 @@ Resources:
       Tags:
         - Key: Name
           Value: !Sub "${ProjectName}-${Environment}-vpce-sg"
+        - Key: project
+          Value: !Ref ProjectName
+        - Key: env
+          Value: !Ref Environment
 
   # ── Security Group: RDS ──
   RdsSecurityGroup:
@@ -128,6 +148,10 @@ Resources:
       Tags:
         - Key: Name
           Value: !Sub "${ProjectName}-${Environment}-rds-sg"
+        - Key: project
+          Value: !Ref ProjectName
+        - Key: env
+          Value: !Ref Environment
 
   # ── RDS Subnet Group ──
   RdsSubnetGroup:
@@ -160,6 +184,10 @@ Resources:
       Tags:
         - Key: Name
           Value: !Sub "${ProjectName}-${Environment}-rds"
+        - Key: project
+          Value: !Ref ProjectName
+        - Key: env
+          Value: !Ref Environment
 
   # ── IAM Role for RDS Proxy to read Secrets Manager ──
   RdsProxyRole:
@@ -185,6 +213,11 @@ Resources:
                   - secretsmanager:DescribeSecret
                   - secretsmanager:ListSecretVersionIds
                 Resource: !GetAtt RdsInstance.MasterUserSecret.SecretArn
+      Tags:
+        - Key: project
+          Value: !Ref ProjectName
+        - Key: env
+          Value: !Ref Environment
 
   # ── RDS Proxy ──
   RdsProxy:
@@ -204,6 +237,11 @@ Resources:
       VpcSecurityGroupIds:
         - !Ref RdsSecurityGroup
       RequireTLS: true
+      Tags:
+        - Key: project
+          Value: !Ref ProjectName
+        - Key: env
+          Value: !Ref Environment
 
   RdsProxyTargetGroup:
     Type: AWS::RDS::DBProxyTargetGroup
@@ -235,6 +273,9 @@ Resources:
           AttributeDataType: String
           Required: true
           Mutable: true
+      UserPoolTags:
+        project: !Ref ProjectName
+        env: !Ref Environment
 
 # ──────────────────────────────────────────────
 # Outputs
