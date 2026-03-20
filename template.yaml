@@ -144,7 +144,7 @@ Resources:
     Properties:
       DBInstanceIdentifier: !Sub "${ProjectName}-${Environment}"
       Engine: postgres
-      EngineVersion: "16.4"
+      EngineVersion: "17.4"
       DBInstanceClass: !Ref RdsInstanceClass
       AllocatedStorage: !Ref RdsAllocatedStorage
       DBName: !Ref RdsDbName
