@@ -352,25 +352,6 @@ Resources:
       UserPoolId: !Ref CognitoUserPool
       Description: Shared group for all app teams
 
-  # ── Cognito App Client (for lab login) ──
-  CognitoLabClient:
-    Type: AWS::Cognito::UserPoolClient
-    Properties:
-      ClientName: !Sub "${Project}-${Environment}-lab"
-      UserPoolId: !Ref CognitoUserPool
-      GenerateSecret: false
-      ExplicitAuthFlows:
-        - ALLOW_USER_PASSWORD_AUTH
-        - ALLOW_REFRESH_TOKEN_AUTH
-
-  # ── Cognito Group (shared by all app teams) ──
-  CognitoAppUserGroup:
-    Type: AWS::Cognito::UserPoolGroup
-    Properties:
-      GroupName: app-user-group
-      UserPoolId: !Ref CognitoUserPool
-      Description: Shared group for all app teams
-
 # ──────────────────────────────────────────────
 # Outputs
 # ──────────────────────────────────────────────
@@ -402,7 +383,7 @@ Outputs:
     Description: RDS admin secret ARN (infra team only - do NOT share with app teams)
     Value: !GetAtt RdsInstance.MasterUserSecret.SecretArn
   RdsSecurityGroupId:
-    Description: RDS security group ID (add app Lambda SG inbound rules here)
+    Description: RDS security group ID
     Value: !Ref RdsSecurityGroup
     Export:
       Name: !Sub "${Project}-${Environment}-RdsSecurityGroupId"
@@ -419,12 +400,6 @@ Outputs:
     Value: !GetAtt CognitoUserPool.Arn
     Export:
       Name: !Sub "${Project}-${Environment}-CognitoUserPoolArn"
-  CognitoGroupName:
-    Description: Cognito group name (provide to app teams as AllowedCognitoGroup)
-    Value: app-user-group
-  CognitoLabClientId:
-    Description: Cognito App Client ID (for lab login and testing)
-    Value: !Ref CognitoLabClient
   CognitoGroupName:
     Description: Cognito group name (provide to app teams as AllowedCognitoGroup)
     Value: app-user-group

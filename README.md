@@ -62,6 +62,8 @@ After deploy, note these values:
 | `CognitoUserPoolId` | App teams |
 | `CognitoUserPoolArn` | App teams |
 | `CognitoGroupName` | App teams (as AllowedCognitoGroup) |
+| `CognitoLabUsername` | App teams (create after deploy - see setup) |
+| `CognitoLabPassword` | App teams (create after deploy - see setup) |
 | `RdsAdminSecretArn` | Infra team only - do NOT share |
 | `RdsSecurityGroupId` | Infra team |
 | `BastionInstanceId` | Infra team - connect via Session Manager |
