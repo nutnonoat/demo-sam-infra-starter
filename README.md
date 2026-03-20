@@ -40,12 +40,11 @@ Shared infrastructure template for serverless applications. Deployed once by the
 | `setup-cognito-user.sh` | Script to create Cognito user from stack outputs |
 | `setup-db-user.sh` | Script to create shared database user via bastion |
 | `samconfig.toml` | Deploy configuration |
-| `Makefile` | Deploy/delete commands |
 
 ## Deploy
 
 ```bash
-make deploy
+sam deploy --guided
 ```
 
 SAM prompts for parameters interactively and saves to `samconfig.toml`.
@@ -140,7 +139,7 @@ PGPASSWORD=$DB_PASS psql \
 ## Cleanup
 
 ```bash
-make delete
+sam delete
 ```
 
 Note: Cognito DeletionProtection is ACTIVE for prod only. For dev/staging, stack deletes cleanly.
