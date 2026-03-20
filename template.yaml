@@ -214,7 +214,7 @@ Resources:
   BastionHost:
     Type: AWS::EC2::Instance
     Properties:
-      InstanceType: t4g.nano
+      InstanceType: t4g.small
       ImageId: !Sub "{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-arm64}}"
       SubnetId: !Ref PublicSubnet
       SecurityGroupIds:
