@@ -24,7 +24,7 @@ Shared infrastructure template for serverless applications. Deployed once by the
 
 | Parameter | Default | Description |
 |---|---|---|
-| `ProjectName` | — | Project name for resource naming |
+| `Project` | — | Project name for resource naming |
 | `Environment` | `dev` | `dev`, `staging`, or `prod` |
 | `VpcCidr` | `10.0.0.0/16` | VPC CIDR block |
 | `PrivateSubnet1Cidr` | `10.0.1.0/24` | First private subnet |

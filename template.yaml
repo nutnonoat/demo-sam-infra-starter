@@ -6,7 +6,7 @@ Description: >
 # Parameters
 # ──────────────────────────────────────────────
 Parameters:
-  ProjectName:
+  Project:
     Type: String
     Description: Project name used for resource naming
   Environment:
@@ -46,9 +46,9 @@ Resources:
       EnableDnsHostnames: true
       Tags:
         - Key: Name
-          Value: !Sub "${ProjectName}-${Environment}-vpc"
+          Value: !Sub "${Project}-${Environment}-vpc"
         - Key: project
-          Value: !Ref ProjectName
+          Value: !Ref Project
         - Key: env
           Value: !Ref Environment
 
@@ -61,9 +61,9 @@ Resources:
       AvailabilityZone: !Select [0, !GetAZs ""]
       Tags:
         - Key: Name
-          Value: !Sub "${ProjectName}-${Environment}-private-1"
+          Value: !Sub "${Project}-${Environment}-private-1"
         - Key: project
-          Value: !Ref ProjectName
+          Value: !Ref Project
         - Key: env
           Value: !Ref Environment
 
@@ -75,9 +75,9 @@ Resources:
       AvailabilityZone: !Select [1, !GetAZs ""]
       Tags:
         - Key: Name
-          Value: !Sub "${ProjectName}-${Environment}-private-2"
+          Value: !Sub "${Project}-${Environment}-private-2"
         - Key: project
-          Value: !Ref ProjectName
+          Value: !Ref Project
         - Key: env
           Value: !Ref Environment
 
@@ -88,9 +88,9 @@ Resources:
       VpcId: !Ref Vpc
       Tags:
         - Key: Name
-          Value: !Sub "${ProjectName}-${Environment}-private-rt"
+          Value: !Sub "${Project}-${Environment}-private-rt"
         - Key: project
-          Value: !Ref ProjectName
+          Value: !Ref Project
         - Key: env
           Value: !Ref Environment
 
@@ -124,7 +124,7 @@ Resources:
   VpcEndpointSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: !Sub "${ProjectName}-${Environment}-vpce-sg"
+      GroupDescription: !Sub "${Project}-${Environment}-vpce-sg"
       VpcId: !Ref Vpc
       SecurityGroupIngress:
         - IpProtocol: tcp
@@ -133,9 +133,9 @@ Resources:
           CidrIp: !Ref VpcCidr
       Tags:
         - Key: Name
-          Value: !Sub "${ProjectName}-${Environment}-vpce-sg"
+          Value: !Sub "${Project}-${Environment}-vpce-sg"
         - Key: project
-          Value: !Ref ProjectName
+          Value: !Ref Project
         - Key: env
           Value: !Ref Environment
 
@@ -143,13 +143,13 @@ Resources:
   RdsSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: !Sub "${ProjectName}-${Environment}-rds-sg"
+      GroupDescription: !Sub "${Project}-${Environment}-rds-sg"
       VpcId: !Ref Vpc
       Tags:
         - Key: Name
-          Value: !Sub "${ProjectName}-${Environment}-rds-sg"
+          Value: !Sub "${Project}-${Environment}-rds-sg"
         - Key: project
-          Value: !Ref ProjectName
+          Value: !Ref Project
         - Key: env
           Value: !Ref Environment
 
@@ -157,7 +157,7 @@ Resources:
   RdsSubnetGroup:
     Type: AWS::RDS::DBSubnetGroup
     Properties:
-      DBSubnetGroupDescription: !Sub "${ProjectName}-${Environment} private subnets"
+      DBSubnetGroupDescription: !Sub "${Project}-${Environment} private subnets"
       SubnetIds:
         - !Ref PrivateSubnet1
         - !Ref PrivateSubnet2
@@ -166,7 +166,7 @@ Resources:
   RdsInstance:
     Type: AWS::RDS::DBInstance
     Properties:
-      DBInstanceIdentifier: !Sub "${ProjectName}-${Environment}"
+      DBInstanceIdentifier: !Sub "${Project}-${Environment}"
       Engine: postgres
       EngineVersion: "17.4"
       DBInstanceClass: !Ref RdsInstanceClass
@@ -183,9 +183,9 @@ Resources:
       DeletionProtection: false
       Tags:
         - Key: Name
-          Value: !Sub "${ProjectName}-${Environment}-rds"
+          Value: !Sub "${Project}-${Environment}-rds"
         - Key: project
-          Value: !Ref ProjectName
+          Value: !Ref Project
         - Key: env
           Value: !Ref Environment
 
@@ -193,7 +193,7 @@ Resources:
   RdsProxyRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: !Sub "${ProjectName}-${Environment}-rds-proxy-role"
+      RoleName: !Sub "${Project}-${Environment}-rds-proxy-role"
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -215,7 +215,7 @@ Resources:
                 Resource: !GetAtt RdsInstance.MasterUserSecret.SecretArn
       Tags:
         - Key: project
-          Value: !Ref ProjectName
+          Value: !Ref Project
         - Key: env
           Value: !Ref Environment
 
@@ -224,7 +224,7 @@ Resources:
     Type: AWS::RDS::DBProxy
     DependsOn: RdsInstance
     Properties:
-      DBProxyName: !Sub "${ProjectName}-${Environment}-proxy"
+      DBProxyName: !Sub "${Project}-${Environment}-proxy"
       EngineFamily: POSTGRESQL
       RoleArn: !GetAtt RdsProxyRole.Arn
       Auth:
@@ -239,7 +239,7 @@ Resources:
       RequireTLS: true
       Tags:
         - Key: project
-          Value: !Ref ProjectName
+          Value: !Ref Project
         - Key: env
           Value: !Ref Environment
 
@@ -255,7 +255,7 @@ Resources:
   CognitoUserPool:
     Type: AWS::Cognito::UserPool
     Properties:
-      UserPoolName: !Sub "${ProjectName}-${Environment}-users"
+      UserPoolName: !Sub "${Project}-${Environment}-users"
       DeletionProtection: ACTIVE
       UsernameAttributes:
         - email
@@ -274,7 +274,7 @@ Resources:
           Required: true
           Mutable: true
       UserPoolTags:
-        project: !Ref ProjectName
+        project: !Ref Project
         env: !Ref Environment
 
 # ──────────────────────────────────────────────
@@ -285,12 +285,12 @@ Outputs:
     Description: VPC ID
     Value: !Ref Vpc
     Export:
-      Name: !Sub "${ProjectName}-${Environment}-VpcId"
+      Name: !Sub "${Project}-${Environment}-VpcId"
   PrivateSubnetIds:
     Description: Private subnet IDs (comma-separated)
     Value: !Sub "${PrivateSubnet1},${PrivateSubnet2}"
     Export:
-      Name: !Sub "${ProjectName}-${Environment}-PrivateSubnetIds"
+      Name: !Sub "${Project}-${Environment}-PrivateSubnetIds"
   RdsEndpoint:
     Description: RDS direct endpoint (for admin use only)
     Value: !GetAtt RdsInstance.Endpoint.Address
@@ -298,7 +298,7 @@ Outputs:
     Description: RDS Proxy endpoint (provide to app teams)
     Value: !GetAtt RdsProxy.Endpoint
     Export:
-      Name: !Sub "${ProjectName}-${Environment}-RdsProxyEndpoint"
+      Name: !Sub "${Project}-${Environment}-RdsProxyEndpoint"
   RdsAdminSecretArn:
     Description: RDS admin secret ARN (infra team only — do NOT share with app teams)
     Value: !GetAtt RdsInstance.MasterUserSecret.SecretArn
@@ -306,7 +306,7 @@ Outputs:
     Description: RDS security group ID (add app Lambda SG inbound rules here)
     Value: !Ref RdsSecurityGroup
     Export:
-      Name: !Sub "${ProjectName}-${Environment}-RdsSecurityGroupId"
+      Name: !Sub "${Project}-${Environment}-RdsSecurityGroupId"
   RdsDbName:
     Description: Database name
     Value: !Ref RdsDbName
@@ -314,9 +314,9 @@ Outputs:
     Description: Cognito User Pool ID (provide to app teams)
     Value: !Ref CognitoUserPool
     Export:
-      Name: !Sub "${ProjectName}-${Environment}-CognitoUserPoolId"
+      Name: !Sub "${Project}-${Environment}-CognitoUserPoolId"
   CognitoUserPoolArn:
     Description: Cognito User Pool ARN (provide to app teams)
     Value: !GetAtt CognitoUserPool.Arn
     Export:
-      Name: !Sub "${ProjectName}-${Environment}-CognitoUserPoolArn"
+      Name: !Sub "${Project}-${Environment}-CognitoUserPoolArn"
