@@ -48,8 +48,6 @@ Resources:
       EnableDnsSupport: true
       EnableDnsHostnames: true
       Tags:
-        - Key: Name
-          Value: !Sub "${Project}-${Environment}-vpc"
         - Key: project
           Value: !Ref Project
         - Key: env
@@ -63,8 +61,6 @@ Resources:
       CidrBlock: !Ref PrivateSubnet1Cidr
       AvailabilityZone: !Select [0, !GetAZs ""]
       Tags:
-        - Key: Name
-          Value: !Sub "${Project}-${Environment}-private-1"
         - Key: project
           Value: !Ref Project
         - Key: env
@@ -77,8 +73,6 @@ Resources:
       CidrBlock: !Ref PrivateSubnet2Cidr
       AvailabilityZone: !Select [1, !GetAZs ""]
       Tags:
-        - Key: Name
-          Value: !Sub "${Project}-${Environment}-private-2"
         - Key: project
           Value: !Ref Project
         - Key: env
@@ -90,8 +84,6 @@ Resources:
     Properties:
       VpcId: !Ref Vpc
       Tags:
-        - Key: Name
-          Value: !Sub "${Project}-${Environment}-private-rt"
         - Key: project
           Value: !Ref Project
         - Key: env
@@ -135,8 +127,6 @@ Resources:
           ToPort: 443
           CidrIp: !Ref VpcCidr
       Tags:
-        - Key: Name
-          Value: !Sub "${Project}-${Environment}-vpce-sg"
         - Key: project
           Value: !Ref Project
         - Key: env
@@ -149,8 +139,6 @@ Resources:
       GroupDescription: !Sub "${Project}-${Environment}-rds-sg"
       VpcId: !Ref Vpc
       Tags:
-        - Key: Name
-          Value: !Sub "${Project}-${Environment}-rds-sg"
         - Key: project
           Value: !Ref Project
         - Key: env
@@ -185,8 +173,6 @@ Resources:
       StorageEncrypted: true
       DeletionProtection: false
       Tags:
-        - Key: Name
-          Value: !Sub "${Project}-${Environment}-rds"
         - Key: project
           Value: !Ref Project
         - Key: env
