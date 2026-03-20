@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Description: >
-  Shared infrastructure for serverless applications — VPC, RDS PostgreSQL, RDS Proxy, Cognito
+  Shared infrastructure for serverless applications — VPC, RDS PostgreSQL, Cognito
 
 # ──────────────────────────────────────────────
 # Parameters
@@ -189,68 +189,6 @@ Resources:
         - Key: env
           Value: !Ref Environment
 
-  # ── IAM Role for RDS Proxy to read Secrets Manager ──
-  RdsProxyRole:
-    Type: AWS::IAM::Role
-    Properties:
-      RoleName: !Sub "${Project}-${Environment}-rds-proxy-role"
-      AssumeRolePolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service: rds.amazonaws.com
-            Action: sts:AssumeRole
-      Policies:
-        - PolicyName: SecretsManagerAccess
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action:
-                  - secretsmanager:GetSecretValue
-                  - secretsmanager:GetResourcePolicy
-                  - secretsmanager:DescribeSecret
-                  - secretsmanager:ListSecretVersionIds
-                Resource: !GetAtt RdsInstance.MasterUserSecret.SecretArn
-      Tags:
-        - Key: project
-          Value: !Ref Project
-        - Key: env
-          Value: !Ref Environment
-
-  # ── RDS Proxy ──
-  RdsProxy:
-    Type: AWS::RDS::DBProxy
-    DependsOn: RdsInstance
-    Properties:
-      DBProxyName: !Sub "${Project}-${Environment}-proxy"
-      EngineFamily: POSTGRESQL
-      RoleArn: !GetAtt RdsProxyRole.Arn
-      Auth:
-        - AuthScheme: SECRETS
-          SecretArn: !GetAtt RdsInstance.MasterUserSecret.SecretArn
-          IAMAuth: DISABLED
-      VpcSubnetIds:
-        - !Ref PrivateSubnet1
-        - !Ref PrivateSubnet2
-      VpcSecurityGroupIds:
-        - !Ref RdsSecurityGroup
-      RequireTLS: true
-      Tags:
-        - Key: project
-          Value: !Ref Project
-        - Key: env
-          Value: !Ref Environment
-
-  RdsProxyTargetGroup:
-    Type: AWS::RDS::DBProxyTargetGroup
-    Properties:
-      DBProxyName: !Ref RdsProxy
-      TargetGroupName: default
-      DBInstanceIdentifiers:
-        - !Ref RdsInstance
-
   # ── Cognito User Pool ──
   CognitoUserPool:
     Type: AWS::Cognito::UserPool
@@ -292,13 +230,10 @@ Outputs:
     Export:
       Name: !Sub "${Project}-${Environment}-PrivateSubnetIds"
   RdsEndpoint:
-    Description: RDS direct endpoint (for admin use only)
+    Description: RDS endpoint (provide to app teams as RdsHost)
     Value: !GetAtt RdsInstance.Endpoint.Address
-  RdsProxyEndpoint:
-    Description: RDS Proxy endpoint (provide to app teams)
-    Value: !GetAtt RdsProxy.Endpoint
     Export:
-      Name: !Sub "${Project}-${Environment}-RdsProxyEndpoint"
+      Name: !Sub "${Project}-${Environment}-RdsEndpoint"
   RdsAdminSecretArn:
     Description: RDS admin secret ARN (infra team only — do NOT share with app teams)
     Value: !GetAtt RdsInstance.MasterUserSecret.SecretArn

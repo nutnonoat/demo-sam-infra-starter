@@ -9,7 +9,7 @@ Shared infrastructure template for serverless applications. Deployed once by the
 | VPC | With 2 private subnets across 2 AZs |
 | VPC Endpoint | Secrets Manager (interface endpoint with private DNS) |
 | RDS PostgreSQL 16 | In private subnets, encrypted, admin password auto-managed |
-| RDS Proxy | Connection pooling for Lambda, TLS required |
+| RDS | Connection pooling for Lambda, TLS required |
 | Cognito User Pool | Centralized user management, email-based login |
 | Security Groups | For RDS and VPC endpoints |
 
@@ -49,7 +49,7 @@ After deploy, note these values:
 |---|---|
 | `VpcId` | App teams |
 | `PrivateSubnetIds` | App teams |
-| `RdsProxyEndpoint` | App teams (as RdsHost) |
+| `RdsEndpoint` | App teams (as RdsHost) |
 | `RdsDbName` | App teams |
 | `CognitoUserPoolId` | App teams |
 | `CognitoUserPoolArn` | App teams |
@@ -108,7 +108,7 @@ CognitoUserPoolArn:   <from stack outputs>
 AllowedCognitoGroup:  myapp-users
 VpcId:                <from stack outputs>
 PrivateSubnetIds:     <from stack outputs>
-RdsHost:              <RdsProxyEndpoint from stack outputs>
+RdsHost:              <RdsEndpoint from stack outputs>
 RdsDbName:            appdb
 RdsUsername:           myapp_user
 RdsPassword:          <the password you generated in step 2>
