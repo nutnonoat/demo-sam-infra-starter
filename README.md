@@ -6,18 +6,18 @@ Shared infrastructure template for serverless applications. Deployed once by the
 
 | Resource | Description |
 |---|---|
-| VPC | With 2 private subnets across 2 AZs |
+| VPC | With 2 private subnets, 1 public subnet across 2 AZs |
 | VPC Endpoint | Secrets Manager (interface endpoint with private DNS) |
 | RDS PostgreSQL 17 | In private subnets, encrypted, admin password auto-managed |
+| Bastion Host | t4g.small in public subnet, Session Manager access, psql pre-installed |
 | Cognito User Pool | Centralized user management, email-based login |
-| Security Groups | For RDS and VPC endpoints |
+| Security Groups | For RDS, VPC endpoints, and bastion |
 
 ## What it does NOT create
 
 - Per-app database users/schemas - created manually per app (see onboarding below)
 - Per-app Cognito groups - created manually per app
 - Per-app Secrets Manager secrets - created by app team's template
-- NAT Gateway - not needed since Lambda accesses AWS services via VPC endpoints
 
 ## Parameters
 
@@ -28,6 +28,7 @@ Shared infrastructure template for serverless applications. Deployed once by the
 | `VpcCidr` | `10.0.0.0/16` | VPC CIDR block |
 | `PrivateSubnet1Cidr` | `10.0.1.0/24` | First private subnet |
 | `PrivateSubnet2Cidr` | `10.0.2.0/24` | Second private subnet |
+| `PublicSubnetCidr` | `10.0.100.0/24` | Public subnet (bastion) |
 | `RdsInstanceClass` | `db.t4g.large` | RDS instance size |
 | `RdsDbName` | `appdb` | Default database name |
 | `RdsAllocatedStorage` | `20` | Storage in GB |
@@ -48,33 +49,44 @@ After deploy, note these values:
 |---|---|
 | `VpcId` | App teams |
 | `PrivateSubnetIds` | App teams |
+| `PublicSubnetId` | Infra team |
 | `RdsEndpoint` | App teams (for Secrets Manager update) |
 | `RdsDbName` | App teams (for Secrets Manager update) |
 | `CognitoUserPoolId` | App teams |
 | `CognitoUserPoolArn` | App teams |
 | `RdsAdminSecretArn` | Infra team only - do NOT share |
 | `RdsSecurityGroupId` | Infra team - add app Lambda SG inbound rules here |
+| `BastionInstanceId` | Infra team - connect via Session Manager |
+
+## Connect to bastion
+
+```bash
+aws ssm start-session --target <BastionInstanceId> --region <region>
+```
 
 ## Onboarding a new app team
 
 For each new app, the infra team runs these steps:
 
-### 1. Connect to RDS with admin credentials
+### 1. Connect to RDS via bastion
 
 ```bash
-# Get admin password from Secrets Manager
-ADMIN_SECRET=$(aws secretsmanager get-secret-value \
+aws ssm start-session --target <BastionInstanceId> --region <region>
+```
+
+Then inside the bastion:
+
+```bash
+# Get admin password
+DB_PASS=$(aws secretsmanager get-secret-value \
   --secret-id <RdsAdminSecretArn> \
-  --query 'SecretString' --output text)
+  --query 'SecretString' --output text | jq -r '.password')
 
-# Parse credentials
-DB_HOST=$(echo $ADMIN_SECRET | jq -r '.host')
-DB_USER=$(echo $ADMIN_SECRET | jq -r '.username')
-DB_PASS=$(echo $ADMIN_SECRET | jq -r '.password')
-DB_NAME=$(echo $ADMIN_SECRET | jq -r '.dbname')
-
-# Connect (requires psql and network access to RDS - use CloudShell VPC environment or bastion)
-PGPASSWORD=$DB_PASS psql -h $DB_HOST -U $DB_USER -d $DB_NAME
+# Connect (host and dbname from stack outputs)
+PGPASSWORD=$DB_PASS psql \
+  -h <RdsEndpoint> \
+  -U dbadmin \
+  -d <RdsDbName>
 ```
 
 ### 2. Create app-specific database user and schema
