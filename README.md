@@ -37,6 +37,7 @@ Shared infrastructure template for serverless applications. Deployed once by the
 | File | Description |
 |---|---|
 | `template.yaml` | CloudFormation template |
+| `setup-cognito-user.sh` | Script to create Cognito user from stack outputs |
 | `samconfig.toml` | Deploy configuration |
 | `Makefile` | Deploy/delete commands |
 
@@ -74,33 +75,13 @@ After deploying the infra stack:
 
 ### 1. Create a shared Cognito user
 
-The template creates the `app-user-group` group automatically. Create a user and add to the group:
+The template creates the `app-user-group` group automatically. Run the script to create the user:
 
 ```bash
-# Create user
-aws cognito-idp admin-create-user \
-  --user-pool-id <CognitoUserPoolId> \
-  --username app-user@lab.local \
-  --temporary-password 'TempPass123!@#' \
-  --user-attributes Name=email,Value=app-user@lab.local Name=email_verified,Value=true \
-  --message-action SUPPRESS \
-  --region <region>
-
-# Set permanent password
-aws cognito-idp admin-set-user-password \
-  --user-pool-id <CognitoUserPoolId> \
-  --username app-user@lab.local \
-  --password 'LabPass123!@#' \
-  --permanent \
-  --region <region>
-
-# Add to group
-aws cognito-idp admin-add-user-to-group \
-  --user-pool-id <CognitoUserPoolId> \
-  --username app-user@lab.local \
-  --group-name app-user-group \
-  --region <region>
+./setup-cognito-user.sh <stack-name> <region>
 ```
+
+The script reads the stack outputs and creates the user automatically.
 
 ### 2. Create a shared database user
 
