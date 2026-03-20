@@ -204,6 +204,11 @@ Resources:
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
         - arn:aws:iam::aws:policy/SecretsManagerReadWrite
+      Tags:
+        - Key: project
+          Value: !Ref Project
+        - Key: environment
+          Value: !Ref Environment
 
   BastionInstanceProfile:
     Type: AWS::IAM::InstanceProfile
@@ -298,6 +303,11 @@ Resources:
       SubnetIds:
         - !Ref PrivateSubnet1
         - !Ref PrivateSubnet2
+      Tags:
+        - Key: project
+          Value: !Ref Project
+        - Key: environment
+          Value: !Ref Environment
 
   # ── RDS PostgreSQL ──
   RdsInstance:
