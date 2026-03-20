@@ -224,7 +224,7 @@ Outputs:
     Export:
       Name: !Sub "${Project}-${Environment}-RdsEndpoint"
   RdsAdminSecretArn:
-    Description: RDS admin secret ARN (infra team only — do NOT share with app teams)
+    Description: RDS admin secret ARN (infra team only - do NOT share with app teams)
     Value: !GetAtt RdsInstance.MasterUserSecret.SecretArn
   RdsSecurityGroupId:
     Description: RDS security group ID (add app Lambda SG inbound rules here)
