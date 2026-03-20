@@ -38,6 +38,7 @@ Shared infrastructure template for serverless applications. Deployed once by the
 |---|---|
 | `template.yaml` | CloudFormation template |
 | `setup-cognito-user.sh` | Script to create Cognito user from stack outputs |
+| `setup-db-user.sh` | Script to create shared database user via bastion |
 | `samconfig.toml` | Deploy configuration |
 | `Makefile` | Deploy/delete commands |
 
@@ -85,32 +86,11 @@ The script reads the stack outputs and creates the user automatically.
 
 ### 2. Create a shared database user
 
-Connect to bastion:
-
 ```bash
-aws ssm start-session --target <BastionInstanceId> --region <region>
+./setup-db-user.sh <stack-name> <region>
 ```
 
-Inside the bastion:
-
-```bash
-DB_PASS=$(aws secretsmanager get-secret-value \
-  --secret-id <RdsAdminSecretArn> \
-  --query 'SecretString' --output text | jq -r '.password')
-
-PGPASSWORD=$DB_PASS psql \
-  -h <RdsEndpoint> \
-  -U dbadmin \
-  -d <RdsDbName>
-```
-
-Then run:
-
-```sql
-CREATE USER labuser WITH PASSWORD 'labpass123';
-GRANT CONNECT ON DATABASE appdb TO labuser;
-GRANT CREATE ON DATABASE appdb TO labuser;
-```
+The script connects to the bastion via SSM, retrieves the admin password from Secrets Manager, and creates the `labuser` database user with `CONNECT` and `CREATE` privileges.
 
 The `CREATE` privilege allows each team's Lambda to auto-create its own schema (named `<project>_<environment>`).
 
