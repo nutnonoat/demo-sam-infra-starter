@@ -403,9 +403,9 @@ Outputs:
   CognitoGroupName:
     Description: Cognito group name (provide to app teams as AllowedCognitoGroup)
     Value: app-user-group
-  CognitoLabUsername:
-    Description: Lab user (create after deploy - see README)
+  CognitoAppUsername:
+    Description: App user (create after deploy - see README)
     Value: app-user@lab.local
-  CognitoLabPassword:
-    Description: Lab user password (create after deploy - see README)
+  CognitoAppPassword:
+    Description: App user password (create after deploy - see README)
     Value: LabPass123!@#
