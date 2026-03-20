@@ -24,7 +24,7 @@ Parameters:
     Default: "10.0.2.0/24"
   RdsInstanceClass:
     Type: String
-    Default: db.t4g.medium
+    Default: db.t4g.large
   RdsDbName:
     Type: String
     Default: appdb
