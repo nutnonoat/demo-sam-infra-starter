@@ -55,7 +55,7 @@ After deploy, note these values:
 | `CognitoUserPoolId` | App teams |
 | `CognitoUserPoolArn` | App teams |
 | `RdsAdminSecretArn` | Infra team only - do NOT share |
-| `RdsSecurityGroupId` | Infra team - add app Lambda SG inbound rules here |
+| `RdsSecurityGroupId` | Infra team |
 | `BastionInstanceId` | Infra team - connect via Session Manager |
 
 ## Connect to bastion
