@@ -32,6 +32,9 @@ Parameters:
     Type: Number
     Default: 20
 
+Conditions:
+  IsProd: !Equals [!Ref Environment, prod]
+
 # ──────────────────────────────────────────────
 # Resources
 # ──────────────────────────────────────────────
@@ -194,7 +197,7 @@ Resources:
     Type: AWS::Cognito::UserPool
     Properties:
       UserPoolName: !Sub "${Project}-${Environment}-users"
-      DeletionProtection: ACTIVE
+      DeletionProtection: !If [IsProd, ACTIVE, INACTIVE]
       UsernameAttributes:
         - email
       AutoVerifiedAttributes:
