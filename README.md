@@ -66,6 +66,8 @@ After deploy, note these values:
 | `CognitoGroupName` | App teams (as AllowedCognitoGroup) |
 | `CognitoAppUsername` | App teams (create after deploy - see setup) |
 | `CognitoAppPassword` | App teams (create after deploy - see setup) |
+| `DbUsername` | App teams (create after deploy - see setup) |
+| `DbPassword` | App teams (create after deploy - see setup) |
 | `RdsAdminSecretArn` | Infra team only - do NOT share |
 | `RdsSecurityGroupId` | Infra team |
 | `BastionInstanceId` | Infra team - connect via Session Manager |
@@ -106,8 +108,8 @@ VpcId:                <from stack outputs>
 PrivateSubnetIds:     <from stack outputs>
 RDS endpoint:         <RdsEndpoint from stack outputs>
 Database name:        <RdsDbName from stack outputs>
-Database username:    labuser
-Database password:    labpass123
+Database username:    dbuser
+Database password:    dbpass
 Cognito username:     app-user@lab.local
 Cognito password:     LabPass123!@#
 ```

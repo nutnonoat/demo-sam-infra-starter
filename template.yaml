@@ -409,3 +409,9 @@ Outputs:
   CognitoAppPassword:
     Description: App user password (create after deploy - see README)
     Value: LabPass123!@#
+  DbUsername:
+    Description: Shared database username (create after deploy - see README)
+    Value: dbuser
+  DbPassword:
+    Description: Shared database password (create after deploy - see README)
+    Value: dbpass

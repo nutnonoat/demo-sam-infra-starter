@@ -28,7 +28,7 @@ COMMAND_ID=$(aws ssm send-command \
   --document-name "AWS-RunShellScript" \
   --parameters "commands=[
     'DB_PASS=\$(aws secretsmanager get-secret-value --secret-id \"$RDS_SECRET\" --query SecretString --output text --region $REGION | jq -r .password)',
-    'PGPASSWORD=\$DB_PASS psql -h $RDS_ENDPOINT -U dbadmin -d $DB_NAME -c \"DO \\$\\$ BEGIN IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = \\\"labuser\\\") THEN CREATE USER labuser WITH PASSWORD \\\"labpass123\\\"; GRANT CONNECT ON DATABASE $DB_NAME TO labuser; GRANT CREATE ON DATABASE $DB_NAME TO labuser; RAISE NOTICE \\\"Created user labuser\\\"; ELSE RAISE NOTICE \\\"User labuser already exists\\\"; END IF; END \\$\\$;\"'
+    'PGPASSWORD=\$DB_PASS psql -h $RDS_ENDPOINT -U dbadmin -d $DB_NAME -c \"DO \\$\\$ BEGIN IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = \\\"dbuser\\\") THEN CREATE USER dbuser WITH PASSWORD \\\"dbpass\\\"; GRANT CONNECT ON DATABASE $DB_NAME TO dbuser; GRANT CREATE ON DATABASE $DB_NAME TO dbuser; RAISE NOTICE \\\"Created user dbuser\\\"; ELSE RAISE NOTICE \\\"User dbuser already exists\\\"; END IF; END \\$\\$;\"'
   ]" \
   --region "$REGION" \
   --query "Command.CommandId" --output text)
@@ -45,6 +45,6 @@ aws ssm get-command-invocation \
 
 echo ""
 echo "Done! Database user:"
-echo "  Username: labuser"
-echo "  Password: labpass123"
+echo "  Username: dbuser"
+echo "  Password: dbpass"
 echo "  Privilege: CONNECT + CREATE on $DB_NAME"
