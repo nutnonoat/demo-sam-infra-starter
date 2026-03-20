@@ -50,7 +50,7 @@ Resources:
       Tags:
         - Key: project
           Value: !Ref Project
-        - Key: env
+        - Key: environment
           Value: !Ref Environment
 
   # ── Private Subnets (2 AZs) ──
@@ -63,7 +63,7 @@ Resources:
       Tags:
         - Key: project
           Value: !Ref Project
-        - Key: env
+        - Key: environment
           Value: !Ref Environment
 
   PrivateSubnet2:
@@ -75,7 +75,7 @@ Resources:
       Tags:
         - Key: project
           Value: !Ref Project
-        - Key: env
+        - Key: environment
           Value: !Ref Environment
 
   # ── Route Table for Private Subnets ──
@@ -86,7 +86,7 @@ Resources:
       Tags:
         - Key: project
           Value: !Ref Project
-        - Key: env
+        - Key: environment
           Value: !Ref Environment
 
   PrivateSubnet1RouteTableAssociation:
@@ -129,7 +129,7 @@ Resources:
       Tags:
         - Key: project
           Value: !Ref Project
-        - Key: env
+        - Key: environment
           Value: !Ref Environment
 
   # ── Security Group: RDS ──
@@ -141,7 +141,7 @@ Resources:
       Tags:
         - Key: project
           Value: !Ref Project
-        - Key: env
+        - Key: environment
           Value: !Ref Environment
 
   # ── RDS Subnet Group ──
@@ -175,7 +175,7 @@ Resources:
       Tags:
         - Key: project
           Value: !Ref Project
-        - Key: env
+        - Key: environment
           Value: !Ref Environment
 
   # ── Cognito User Pool ──
@@ -202,7 +202,7 @@ Resources:
           Mutable: true
       UserPoolTags:
         project: !Ref Project
-        env: !Ref Environment
+        environment: !Ref Environment
 
 # ──────────────────────────────────────────────
 # Outputs
