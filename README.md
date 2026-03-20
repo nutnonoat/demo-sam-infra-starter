@@ -149,7 +149,7 @@ Cognito username:     app-user@lab.local
 Cognito password:     LabPass123!@#
 ```
 
-Each team's Lambda auto-creates its own schema based on its `Project` and `Environment` parameters (e.g., `team_001_dev`). No per-team setup needed.
+Each team's Lambda auto-creates its own schema based on its `Project` and `Environment` parameters (e.g., `my_project_dev`). No per-team setup needed.
 
 The app team uses the RDS details to update their Secrets Manager secret after deploying their stack (see backend starter README Step 4).
 
