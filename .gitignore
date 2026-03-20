@@ -1,0 +1,13 @@
+# SAM
+.aws-sam/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+.DS_Store

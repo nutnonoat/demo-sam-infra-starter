@@ -1,0 +1,281 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  Shared infrastructure for serverless applications — VPC, RDS PostgreSQL, RDS Proxy, Cognito
+
+# ──────────────────────────────────────────────
+# Parameters
+# ──────────────────────────────────────────────
+Parameters:
+  ProjectName:
+    Type: String
+    Description: Project name used for resource naming
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues: [dev, staging, prod]
+  VpcCidr:
+    Type: String
+    Default: "10.0.0.0/16"
+  PrivateSubnet1Cidr:
+    Type: String
+    Default: "10.0.1.0/24"
+  PrivateSubnet2Cidr:
+    Type: String
+    Default: "10.0.2.0/24"
+  RdsInstanceClass:
+    Type: String
+    Default: db.t4g.medium
+  RdsDbName:
+    Type: String
+    Default: appdb
+  RdsAllocatedStorage:
+    Type: Number
+    Default: 20
+
+# ──────────────────────────────────────────────
+# Resources
+# ──────────────────────────────────────────────
+Resources:
+
+  # ── VPC ──
+  Vpc:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VpcCidr
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: !Sub "${ProjectName}-${Environment}-vpc"
+
+  # ── Private Subnets (2 AZs) ──
+  PrivateSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref Vpc
+      CidrBlock: !Ref PrivateSubnet1Cidr
+      AvailabilityZone: !Select [0, !GetAZs ""]
+      Tags:
+        - Key: Name
+          Value: !Sub "${ProjectName}-${Environment}-private-1"
+
+  PrivateSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref Vpc
+      CidrBlock: !Ref PrivateSubnet2Cidr
+      AvailabilityZone: !Select [1, !GetAZs ""]
+      Tags:
+        - Key: Name
+          Value: !Sub "${ProjectName}-${Environment}-private-2"
+
+  # ── Route Table for Private Subnets ──
+  PrivateRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref Vpc
+      Tags:
+        - Key: Name
+          Value: !Sub "${ProjectName}-${Environment}-private-rt"
+
+  PrivateSubnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PrivateSubnet1
+      RouteTableId: !Ref PrivateRouteTable
+
+  PrivateSubnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PrivateSubnet2
+      RouteTableId: !Ref PrivateRouteTable
+
+  # ── VPC Endpoint: Secrets Manager ──
+  SecretsManagerEndpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      VpcId: !Ref Vpc
+      ServiceName: !Sub "com.amazonaws.${AWS::Region}.secretsmanager"
+      VpcEndpointType: Interface
+      PrivateDnsEnabled: true
+      SubnetIds:
+        - !Ref PrivateSubnet1
+        - !Ref PrivateSubnet2
+      SecurityGroupIds:
+        - !Ref VpcEndpointSecurityGroup
+
+  # ── Security Group: VPC Endpoints ──
+  VpcEndpointSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: !Sub "${ProjectName}-${Environment}-vpce-sg"
+      VpcId: !Ref Vpc
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: !Ref VpcCidr
+      Tags:
+        - Key: Name
+          Value: !Sub "${ProjectName}-${Environment}-vpce-sg"
+
+  # ── Security Group: RDS ──
+  RdsSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: !Sub "${ProjectName}-${Environment}-rds-sg"
+      VpcId: !Ref Vpc
+      Tags:
+        - Key: Name
+          Value: !Sub "${ProjectName}-${Environment}-rds-sg"
+
+  # ── RDS Subnet Group ──
+  RdsSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: !Sub "${ProjectName}-${Environment} private subnets"
+      SubnetIds:
+        - !Ref PrivateSubnet1
+        - !Ref PrivateSubnet2
+
+  # ── RDS PostgreSQL ──
+  RdsInstance:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBInstanceIdentifier: !Sub "${ProjectName}-${Environment}"
+      Engine: postgres
+      EngineVersion: "16.4"
+      DBInstanceClass: !Ref RdsInstanceClass
+      AllocatedStorage: !Ref RdsAllocatedStorage
+      DBName: !Ref RdsDbName
+      MasterUsername: dbadmin
+      ManageMasterUserPassword: true
+      DBSubnetGroupName: !Ref RdsSubnetGroup
+      VPCSecurityGroups:
+        - !Ref RdsSecurityGroup
+      MultiAZ: false
+      PubliclyAccessible: false
+      StorageEncrypted: true
+      DeletionProtection: false
+      Tags:
+        - Key: Name
+          Value: !Sub "${ProjectName}-${Environment}-rds"
+
+  # ── IAM Role for RDS Proxy to read Secrets Manager ──
+  RdsProxyRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "${ProjectName}-${Environment}-rds-proxy-role"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: rds.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: SecretsManagerAccess
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - secretsmanager:GetSecretValue
+                  - secretsmanager:GetResourcePolicy
+                  - secretsmanager:DescribeSecret
+                  - secretsmanager:ListSecretVersionIds
+                Resource: !GetAtt RdsInstance.MasterUserSecret.SecretArn
+
+  # ── RDS Proxy ──
+  RdsProxy:
+    Type: AWS::RDS::DBProxy
+    DependsOn: RdsInstance
+    Properties:
+      DBProxyName: !Sub "${ProjectName}-${Environment}-proxy"
+      EngineFamily: POSTGRESQL
+      RoleArn: !GetAtt RdsProxyRole.Arn
+      Auth:
+        - AuthScheme: SECRETS
+          SecretArn: !GetAtt RdsInstance.MasterUserSecret.SecretArn
+          IAMAuth: DISABLED
+      VpcSubnetIds:
+        - !Ref PrivateSubnet1
+        - !Ref PrivateSubnet2
+      VpcSecurityGroupIds:
+        - !Ref RdsSecurityGroup
+      RequireTLS: true
+
+  RdsProxyTargetGroup:
+    Type: AWS::RDS::DBProxyTargetGroup
+    Properties:
+      DBProxyName: !Ref RdsProxy
+      TargetGroupName: default
+      DBInstanceIdentifiers:
+        - !Ref RdsInstance
+
+  # ── Cognito User Pool ──
+  CognitoUserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: !Sub "${ProjectName}-${Environment}-users"
+      DeletionProtection: ACTIVE
+      UsernameAttributes:
+        - email
+      AutoVerifiedAttributes:
+        - email
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 12
+          RequireLowercase: true
+          RequireNumbers: true
+          RequireSymbols: true
+          RequireUppercase: true
+      Schema:
+        - Name: email
+          AttributeDataType: String
+          Required: true
+          Mutable: true
+
+# ──────────────────────────────────────────────
+# Outputs
+# ──────────────────────────────────────────────
+Outputs:
+  VpcId:
+    Description: VPC ID
+    Value: !Ref Vpc
+    Export:
+      Name: !Sub "${ProjectName}-${Environment}-VpcId"
+  PrivateSubnetIds:
+    Description: Private subnet IDs (comma-separated)
+    Value: !Sub "${PrivateSubnet1},${PrivateSubnet2}"
+    Export:
+      Name: !Sub "${ProjectName}-${Environment}-PrivateSubnetIds"
+  RdsEndpoint:
+    Description: RDS direct endpoint (for admin use only)
+    Value: !GetAtt RdsInstance.Endpoint.Address
+  RdsProxyEndpoint:
+    Description: RDS Proxy endpoint (provide to app teams)
+    Value: !GetAtt RdsProxy.Endpoint
+    Export:
+      Name: !Sub "${ProjectName}-${Environment}-RdsProxyEndpoint"
+  RdsAdminSecretArn:
+    Description: RDS admin secret ARN (infra team only — do NOT share with app teams)
+    Value: !GetAtt RdsInstance.MasterUserSecret.SecretArn
+  RdsSecurityGroupId:
+    Description: RDS security group ID (add app Lambda SG inbound rules here)
+    Value: !Ref RdsSecurityGroup
+    Export:
+      Name: !Sub "${ProjectName}-${Environment}-RdsSecurityGroupId"
+  RdsDbName:
+    Description: Database name
+    Value: !Ref RdsDbName
+  CognitoUserPoolId:
+    Description: Cognito User Pool ID (provide to app teams)
+    Value: !Ref CognitoUserPool
+    Export:
+      Name: !Sub "${ProjectName}-${Environment}-CognitoUserPoolId"
+  CognitoUserPoolArn:
+    Description: Cognito User Pool ARN (provide to app teams)
+    Value: !GetAtt CognitoUserPool.Arn
+    Export:
+      Name: !Sub "${ProjectName}-${Environment}-CognitoUserPoolArn"
