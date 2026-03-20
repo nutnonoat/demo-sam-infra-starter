@@ -173,38 +173,74 @@ Resources:
       SubnetId: !Ref PublicSubnet
       RouteTableId: !Ref PublicRouteTable
 
-  # ── NAT Gateway (for CloudShell and private subnet internet access) ──
-  NatGatewayEip:
-    Type: AWS::EC2::EIP
+  # ── Bastion Host ──
+  BastionSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
     Properties:
-      Domain: vpc
+      GroupDescription: !Sub "${Project}-${Environment}-bastion-sg"
+      VpcId: !Ref Vpc
+      SecurityGroupEgress:
+        - IpProtocol: "-1"
+          CidrIp: 0.0.0.0/0
       Tags:
         - Key: Name
-          Value: !Sub "${Project}-${Environment}-nat-eip"
+          Value: !Sub "${Project}-${Environment}-bastion-sg"
         - Key: project
           Value: !Ref Project
         - Key: environment
           Value: !Ref Environment
 
-  NatGateway:
-    Type: AWS::EC2::NatGateway
+  BastionRole:
+    Type: AWS::IAM::Role
     Properties:
-      AllocationId: !GetAtt NatGatewayEip.AllocationId
+      RoleName: !Sub "${Project}-${Environment}-bastion-role"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+        - arn:aws:iam::aws:policy/SecretsManagerReadWrite
+
+  BastionInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles:
+        - !Ref BastionRole
+
+  BastionHost:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t4g.nano
+      ImageId: !Sub "{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-arm64}}"
       SubnetId: !Ref PublicSubnet
+      SecurityGroupIds:
+        - !Ref BastionSecurityGroup
+      IamInstanceProfile: !Ref BastionInstanceProfile
+      UserData:
+        Fn::Base64: |
+          #!/bin/bash
+          dnf install -y postgresql16 jq
       Tags:
         - Key: Name
-          Value: !Sub "${Project}-${Environment}-nat"
+          Value: !Sub "${Project}-${Environment}-bastion"
         - Key: project
           Value: !Ref Project
         - Key: environment
           Value: !Ref Environment
 
-  PrivateRoute:
-    Type: AWS::EC2::Route
+  # ── Allow Bastion to reach RDS ──
+  RdsIngressFromBastion:
+    Type: AWS::EC2::SecurityGroupIngress
     Properties:
-      RouteTableId: !Ref PrivateRouteTable
-      DestinationCidrBlock: 0.0.0.0/0
-      NatGatewayId: !Ref NatGateway
+      GroupId: !Ref RdsSecurityGroup
+      IpProtocol: tcp
+      FromPort: 5432
+      ToPort: 5432
+      SourceSecurityGroupId: !Ref BastionSecurityGroup
 
   # ── VPC Endpoint: Secrets Manager ──
   SecretsManagerEndpoint:
@@ -328,10 +364,13 @@ Outputs:
     Export:
       Name: !Sub "${Project}-${Environment}-PrivateSubnetIds"
   PublicSubnetId:
-    Description: Public subnet ID (for CloudShell VPC environment or bastion)
+    Description: Public subnet ID
     Value: !Ref PublicSubnet
     Export:
       Name: !Sub "${Project}-${Environment}-PublicSubnetId"
+  BastionInstanceId:
+    Description: Bastion host instance ID (connect via Session Manager)
+    Value: !Ref BastionHost
   RdsEndpoint:
     Description: RDS endpoint (provide to app teams as RdsHost)
     Value: !GetAtt RdsInstance.Endpoint.Address
