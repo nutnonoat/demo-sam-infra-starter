@@ -127,18 +127,6 @@ Database password:    <the password you generated in step 2>
 
 The app team will use the RDS details to update their Secrets Manager secret after deploying their stack (see backend starter README Step 4).
 
-### 5. After app team's first deploy
-
-Add their Lambda security group to the RDS security group:
-
-```bash
-aws ec2 authorize-security-group-ingress \
-  --group-id <RdsSecurityGroupId> \
-  --protocol tcp \
-  --port 5432 \
-  --source-group <LambdaSecurityGroupId from app team's stack outputs>
-```
-
 ## Cleanup
 
 ```bash

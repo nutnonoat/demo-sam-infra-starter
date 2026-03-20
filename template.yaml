@@ -232,16 +232,6 @@ Resources:
         - Key: environment
           Value: !Ref Environment
 
-  # ── Allow Bastion to reach RDS ──
-  RdsIngressFromBastion:
-    Type: AWS::EC2::SecurityGroupIngress
-    Properties:
-      GroupId: !Ref RdsSecurityGroup
-      IpProtocol: tcp
-      FromPort: 5432
-      ToPort: 5432
-      SourceSecurityGroupId: !Ref BastionSecurityGroup
-
   # ── VPC Endpoint: Secrets Manager ──
   SecretsManagerEndpoint:
     Type: AWS::EC2::VPCEndpoint
@@ -281,6 +271,11 @@ Resources:
     Properties:
       GroupDescription: !Sub "${Project}-${Environment}-rds-sg"
       VpcId: !Ref Vpc
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 5432
+          ToPort: 5432
+          CidrIp: !Ref VpcCidr
       Tags:
         - Key: Name
           Value: !Sub "${Project}-${Environment}-rds-sg"
