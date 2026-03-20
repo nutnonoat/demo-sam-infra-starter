@@ -15,9 +15,8 @@ Shared infrastructure template for serverless applications. Deployed once by the
 
 ## What it does NOT create
 
-- Per-app database users/schemas - created via `setup-teams.sql` (see setup below)
-- Per-app Cognito groups - created via CLI (see setup below)
 - Per-app Secrets Manager secrets - created by app team's template
+- Per-app schemas - auto-created by app team's Lambda on first request
 
 ## Parameters
 
@@ -38,8 +37,6 @@ Shared infrastructure template for serverless applications. Deployed once by the
 | File | Description |
 |---|---|
 | `template.yaml` | CloudFormation template |
-| `setup-teams.sql` | SQL to create 70 database users and schemas in bulk |
-| `team-credentials.csv` | Pre-generated credentials for distribution to teams |
 | `samconfig.toml` | Deploy configuration |
 | `Makefile` | Deploy/delete commands |
 
@@ -68,71 +65,68 @@ After deploy, note these values:
 | `RdsSecurityGroupId` | Infra team |
 | `BastionInstanceId` | Infra team - connect via Session Manager |
 
-## Setup teams (bulk)
+## Setup for lab
 
-After deploying the infra stack, run these steps to prepare credentials for all teams.
+After deploying the infra stack:
 
-### 1. Create database users and schemas
-
-Connect to the bastion and run the SQL file:
+### 1. Create a shared Cognito group
 
 ```bash
-# Connect to bastion
+aws cognito-idp create-group \
+  --user-pool-id <CognitoUserPoolId> \
+  --group-name lab-users \
+  --description "Shared group for all lab participants" \
+  --region <region>
+```
+
+### 2. Create a shared database user
+
+Connect to bastion:
+
+```bash
 aws ssm start-session --target <BastionInstanceId> --region <region>
 ```
 
 Inside the bastion:
 
 ```bash
-# Get admin password
 DB_PASS=$(aws secretsmanager get-secret-value \
   --secret-id <RdsAdminSecretArn> \
   --query 'SecretString' --output text | jq -r '.password')
 
-# Run bulk setup (creates 70 users and schemas)
 PGPASSWORD=$DB_PASS psql \
   -h <RdsEndpoint> \
   -U dbadmin \
-  -d <RdsDbName> \
-  -f setup-teams.sql
+  -d <RdsDbName>
 ```
 
-This creates:
-- `dbuser001` through `dbuser070` (each with their own password)
-- `app001` through `app070` schemas (each owned by the corresponding user)
-- Each user can only access their own schema
+Then run:
 
-### 2. Create Cognito groups
-
-Run from your local machine or bastion:
-
-```bash
-for i in $(seq 1 70); do
-  num=$(printf "%03d" $i)
-  aws cognito-idp create-group \
-    --user-pool-id <CognitoUserPoolId> \
-    --group-name "team-${num}-users" \
-    --description "Users for team-${num}" \
-    --region <region>
-done
+```sql
+CREATE USER labuser WITH PASSWORD 'labpass123';
+GRANT CONNECT ON DATABASE appdb TO labuser;
+GRANT CREATE ON DATABASE appdb TO labuser;
 ```
 
-### 3. Distribute to teams
+The `CREATE` privilege allows each team's Lambda to auto-create its own schema (named `<project>_<environment>`).
 
-Each team receives:
+### 3. Distribute to all teams
 
-| Value | Source |
-|---|---|
-| `CognitoUserPoolId` | Stack outputs |
-| `CognitoUserPoolArn` | Stack outputs |
-| `AllowedCognitoGroup` | `team-<NNN>-users` |
-| `VpcId` | Stack outputs |
-| `PrivateSubnetIds` | Stack outputs |
-| RDS endpoint | `RdsEndpoint` from stack outputs |
-| Database name | `RdsDbName` from stack outputs |
-| Database username | From `team-credentials.csv` (e.g., `dbuser001`) |
-| Database password | From `team-credentials.csv` (e.g., `dbpass001`) |
-| Schema name | From `team-credentials.csv` (e.g., `app001`) |
+All teams receive the same values:
+
+```
+CognitoUserPoolId:    <from stack outputs>
+CognitoUserPoolArn:   <from stack outputs>
+AllowedCognitoGroup:  lab-users
+VpcId:                <from stack outputs>
+PrivateSubnetIds:     <from stack outputs>
+RDS endpoint:         <RdsEndpoint from stack outputs>
+Database name:        <RdsDbName from stack outputs>
+Database username:    labuser
+Database password:    labpass123
+```
+
+Each team's Lambda auto-creates its own schema based on its `Project` and `Environment` parameters (e.g., `team_001_dev`). No per-team setup needed.
 
 The app team uses the RDS details to update their Secrets Manager secret after deploying their stack (see backend starter README Step 4).
 
@@ -154,33 +148,6 @@ PGPASSWORD=$DB_PASS psql \
   -U dbadmin \
   -d <RdsDbName>
 ```
-
-## Onboarding a single team (ad-hoc)
-
-If you need to add a team outside of the bulk setup:
-
-### 1. Connect to RDS via bastion (see above)
-
-### 2. Create database user and schema
-
-```sql
-CREATE USER <username> WITH PASSWORD '<password>';
-CREATE SCHEMA <schema> AUTHORIZATION <username>;
-GRANT CONNECT ON DATABASE <RdsDbName> TO <username>;
-REVOKE ALL ON SCHEMA public FROM <username>;
-```
-
-### 3. Create Cognito group
-
-```bash
-aws cognito-idp create-group \
-  --user-pool-id <CognitoUserPoolId> \
-  --group-name <team>-users \
-  --description "Users for <team>" \
-  --region <region>
-```
-
-### 4. Hand off credentials to the team (see distribution table above)
 
 ## Cleanup
 
