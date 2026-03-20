@@ -46,10 +46,11 @@ Shared infrastructure template for serverless applications. Deployed once by the
 ## Deploy
 
 ```bash
-sam deploy --guided
+sam deploy --guided    # first time
+sam deploy             # subsequent deploys
 ```
 
-SAM prompts for parameters interactively and saves to `samconfig.toml`.
+SAM prompts for parameters interactively on first run and saves to `samconfig.toml`.
 
 ## Outputs
 
