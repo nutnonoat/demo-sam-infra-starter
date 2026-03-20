@@ -69,13 +69,33 @@ After deploy, note these values:
 
 After deploying the infra stack:
 
-### 1. Create a shared Cognito group
+### 1. Create a shared Cognito user
+
+The template creates the `app-user-group` group automatically. Create a user and add to the group:
 
 ```bash
-aws cognito-idp create-group \
+# Create user
+aws cognito-idp admin-create-user \
   --user-pool-id <CognitoUserPoolId> \
-  --group-name lab-users \
-  --description "Shared group for all lab participants" \
+  --username app-user@lab.local \
+  --temporary-password 'TempPass123!@#' \
+  --user-attributes Name=email,Value=app-user@lab.local Name=email_verified,Value=true \
+  --message-action SUPPRESS \
+  --region <region>
+
+# Set permanent password
+aws cognito-idp admin-set-user-password \
+  --user-pool-id <CognitoUserPoolId> \
+  --username app-user@lab.local \
+  --password 'LabPass123!@#' \
+  --permanent \
+  --region <region>
+
+# Add to group
+aws cognito-idp admin-add-user-to-group \
+  --user-pool-id <CognitoUserPoolId> \
+  --username app-user@lab.local \
+  --group-name app-user-group \
   --region <region>
 ```
 
@@ -117,13 +137,15 @@ All teams receive the same values:
 ```
 CognitoUserPoolId:    <from stack outputs>
 CognitoUserPoolArn:   <from stack outputs>
-AllowedCognitoGroup:  lab-users
+AllowedCognitoGroup:  app-user-group
 VpcId:                <from stack outputs>
 PrivateSubnetIds:     <from stack outputs>
 RDS endpoint:         <RdsEndpoint from stack outputs>
 Database name:        <RdsDbName from stack outputs>
 Database username:    labuser
 Database password:    labpass123
+Cognito username:     app-user@lab.local
+Cognito password:     LabPass123!@#
 ```
 
 Each team's Lambda auto-creates its own schema based on its `Project` and `Environment` parameters (e.g., `team_001_dev`). No per-team setup needed.
