@@ -256,6 +256,13 @@ Resources:
         - !Ref PrivateSubnet2
       SecurityGroupIds:
         - !Ref VpcEndpointSecurityGroup
+      Tags:
+        - Key: Name
+          Value: !Sub "${Project}-${Environment}-sm-vpce"
+        - Key: project
+          Value: !Ref Project
+        - Key: environment
+          Value: !Ref Environment
 
   # ── Security Group: VPC Endpoints ──
   VpcEndpointSecurityGroup:
