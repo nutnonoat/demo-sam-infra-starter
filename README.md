@@ -110,8 +110,8 @@ RDS endpoint:         <RdsEndpoint from stack outputs>
 Database name:        <RdsDbName from stack outputs>
 Database username:    dbuser
 Database password:    dbpass
-Cognito username:     app-user@lab.local
-Cognito password:     LabPass123!@#
+Cognito username:     appuser@aws.local
+Cognito password:     AppP@ssw0rd!
 ```
 
 Each team's Lambda auto-creates its own schema based on its `Project` and `Environment` parameters (e.g., `my_project_dev`). No per-team setup needed.

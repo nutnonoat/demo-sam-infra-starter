@@ -405,10 +405,10 @@ Outputs:
     Value: app-user-group
   CognitoAppUsername:
     Description: App user (create after deploy - see README)
-    Value: app-user@lab.local
+    Value: appuser@aws.local
   CognitoAppPassword:
     Description: App user password (create after deploy - see README)
-    Value: LabPass123!@#
+    Value: AppP@ssw0rd!
   DbUsername:
     Description: Shared database username (create after deploy - see README)
     Value: dbuser
