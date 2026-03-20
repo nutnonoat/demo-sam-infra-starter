@@ -80,11 +80,12 @@ PGPASSWORD=$DB_PASS psql -h $DB_HOST -U $DB_USER -d $DB_NAME
 ### 2. Create app-specific database user and schema
 
 ```sql
--- Replace 'myapp' with the app name
+-- Replace 'myapp' with the app name, use project_environment format
+-- Example: project=my-app, environment=dev -> schema=my_app_dev
 CREATE USER myapp_user WITH PASSWORD 'generate-a-strong-password';
-CREATE SCHEMA myapp AUTHORIZATION myapp_user;
+CREATE SCHEMA my_app_dev AUTHORIZATION myapp_user;
 GRANT CONNECT ON DATABASE <RdsDbName> TO myapp_user;
--- myapp_user can only access the myapp schema
+-- myapp_user can only access the my_app_dev schema
 ```
 
 ### 3. Create Cognito group for the app
