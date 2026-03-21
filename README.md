@@ -45,6 +45,19 @@ Shared infrastructure template for serverless applications. Deployed once by the
 
 ## Deploy
 
+Configure your AWS profile before deploying:
+
+```bash
+# If using IAM Identity Center (SSO)
+aws configure sso           # one-time setup
+aws sso login --profile <profile-name>
+
+# Set the profile for SAM CLI
+export AWS_PROFILE=<profile-name>
+```
+
+If using the default profile, no `AWS_PROFILE` is needed.
+
 ```bash
 sam deploy --guided    # first time
 sam deploy             # subsequent deploys
