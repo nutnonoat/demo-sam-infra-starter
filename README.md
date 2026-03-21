@@ -95,7 +95,7 @@ After deploy, note these values:
 | `RdsSecurityGroupId` | Infra team |
 | `BastionInstanceId` | Infra team - connect via Session Manager |
 
-## Setup for lab
+## Set up for playground
 
 After deploying the infra stack:
 
@@ -117,7 +117,7 @@ Copy the command from stack output `DbUserSetupCommand` and run it:
 
 The `CREATE` privilege allows each team's Lambda to auto-create its own schema (named `<project>_<environment>`).
 
-### 3. Distribute to all teams
+### 3. Distribute to all app teams
 
 All teams receive the same values:
 
