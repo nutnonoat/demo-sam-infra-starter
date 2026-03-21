@@ -397,6 +397,15 @@ Outputs:
   BastionInstanceId:
     Description: Bastion host instance ID (connect via Session Manager)
     Value: !Ref BastionHost
+  BastionConnectCommand:
+    Description: Command to connect to bastion
+    Value: !Sub "aws ssm start-session --target ${BastionHost} --region ${AWS::Region}"
+  SetupCognitoUserCommand:
+    Description: Run after deploy to create Cognito user
+    Value: !Sub "./setup-cognito-user.sh ${AWS::StackName} ${AWS::Region}"
+  SetupDbUserCommand:
+    Description: Run after deploy to create database user
+    Value: !Sub "./setup-db-user.sh ${AWS::StackName} ${AWS::Region}"
   RdsEndpoint:
     Description: RDS endpoint (provide to app teams as RdsHost)
     Value: !GetAtt RdsInstance.Endpoint.Address
