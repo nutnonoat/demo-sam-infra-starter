@@ -63,6 +63,14 @@ sam deploy --guided    # first time
 sam deploy             # subsequent deploys
 ```
 
+To add custom tags to all resources in the stack:
+
+```bash
+sam deploy --guided --tags "auto-delete=no team=platform"
+```
+
+Tags are saved to `samconfig.toml` and reused on subsequent deploys.
+
 SAM prompts for parameters interactively on first run and saves to `samconfig.toml`.
 
 ## Outputs
