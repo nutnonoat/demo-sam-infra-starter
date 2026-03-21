@@ -101,21 +101,19 @@ After deploying the infra stack:
 
 ### 1. Create a shared Cognito user
 
-The template creates the `app-user-group` group automatically. Run the script to create the user:
+The template creates the `app-user-group` group automatically. Copy the command from stack output `CognitoAppUserSetupCommand` and run it:
 
 ```bash
 ./setup-cognito-user.sh <stack-name> <region>
 ```
 
-The script reads the stack outputs and creates the user automatically.
-
 ### 2. Create a shared database user
+
+Copy the command from stack output `DbUserSetupCommand` and run it:
 
 ```bash
 ./setup-db-user.sh <stack-name> <region>
 ```
-
-The script connects to the bastion via SSM, retrieves the admin password from Secrets Manager, and creates the `labuser` database user with `CONNECT` and `CREATE` privileges.
 
 The `CREATE` privilege allows each team's Lambda to auto-create its own schema (named `<project>_<environment>`).
 
@@ -142,6 +140,8 @@ Each team's Lambda auto-creates its own schema based on its `Project` and `Envir
 The app team uses the RDS details to update their Secrets Manager secret after deploying their stack (see backend starter README Step 4).
 
 ## Connect to bastion
+
+Copy the command from stack output `BastionConnectCommand`:
 
 ```bash
 aws ssm start-session --target <BastionInstanceId> --region <region>
