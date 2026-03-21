@@ -400,10 +400,10 @@ Outputs:
   BastionConnectCommand:
     Description: Command to connect to bastion
     Value: !Sub "aws ssm start-session --target ${BastionHost} --region ${AWS::Region}"
-  SetupCognitoUserCommand:
+  CognitoAppUserSetupCommand:
     Description: Run after deploy to create Cognito user
     Value: !Sub "./setup-cognito-user.sh ${AWS::StackName} ${AWS::Region}"
-  SetupDbUserCommand:
+  DbUserSetupCommand:
     Description: Run after deploy to create database user
     Value: !Sub "./setup-db-user.sh ${AWS::StackName} ${AWS::Region}"
   RdsEndpoint:
