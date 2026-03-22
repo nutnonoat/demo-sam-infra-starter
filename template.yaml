@@ -428,17 +428,17 @@ Outputs:
     Export:
       Name: !Sub "${Project}-${Environment}-CognitoUserPoolId"
   CognitoGroupName:
-    Description: Cognito group name (provide to app teams as AllowedCognitoGroup)
+    Description: Cognito group name - playground only. In production, create dedicated groups per app team.
     Value: app-user-group
   CognitoAppUsername:
-    Description: App user (create after deploy - see README)
+    Description: Suggested Cognito username - playground only. In production, use proper user management.
     Value: appuser@aws.local
   CognitoAppPassword:
-    Description: App user password (create after deploy - see README)
+    Description: Suggested Cognito password - playground only. In production, enforce secure password policies.
     Value: AppP@ssw0rd!
   DbUsername:
-    Description: Shared database username (create after deploy - see README)
+    Description: Suggested database username - playground only. In production, create dedicated users per app team.
     Value: dbuser
   DbPassword:
-    Description: Shared database password (create after deploy - see README)
+    Description: Suggested database password - playground only. In production, use strong generated passwords.
     Value: dbpass

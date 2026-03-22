@@ -101,11 +101,11 @@ After deploy, note these values:
 | `RdsEndpoint` | App teams (for Secrets Manager update) |
 | `RdsDbName` | App teams (for Secrets Manager update) |
 | `CognitoUserPoolId` | App teams |
-| `CognitoGroupName` | App teams (as AllowedCognitoGroup) |
-| `CognitoAppUsername` | App teams (create after deploy - see setup) |
-| `CognitoAppPassword` | App teams (create after deploy - see setup) |
-| `DbUsername` | App teams (create after deploy - see setup) |
-| `DbPassword` | App teams (create after deploy - see setup) |
+| `CognitoGroupName` | App teams (playground only - in production, create dedicated groups per app) |
+| `CognitoAppUsername` | App teams (playground only - in production, use proper user management) |
+| `CognitoAppPassword` | App teams (playground only - in production, enforce secure passwords) |
+| `DbUsername` | App teams (playground only - in production, create dedicated DB users per app) |
+| `DbPassword` | App teams (playground only - in production, use strong generated passwords) |
 | `RdsAdminSecretArn` | Infra team only - do NOT share |
 | `RdsSecurityGroupId` | Infra team |
 | `BastionInstanceId` | Infra team - connect via Session Manager |
