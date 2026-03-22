@@ -53,7 +53,8 @@ aws configure sso           # one-time setup
 aws sso login --profile <profile-name>
 
 # Set the profile for SAM CLI
-export AWS_PROFILE=<profile-name>
+export AWS_PROFILE=<profile-name>              # macOS/Linux
+$env:AWS_PROFILE="<profile-name>"              # Windows PowerShell
 ```
 
 If using the default profile, no `AWS_PROFILE` is needed.
