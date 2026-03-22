@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Description: >
-  Shared infrastructure for serverless applications — VPC, RDS PostgreSQL, Cognito
+  Shared infrastructure for serverless applications - VPC, RDS PostgreSQL, Cognito
 
 # ──────────────────────────────────────────────
 # Parameters
