@@ -87,7 +87,7 @@ After deploy, note these values:
 | `RdsEndpoint` | App teams (for Secrets Manager update) |
 | `RdsDbName` | App teams (for Secrets Manager update) |
 | `CognitoUserPoolId` | App teams |
-| `CognitoUserPoolArn` | App teams |
+| `CognitoUserPoolArn` | Optional (not required by app template) |
 | `CognitoGroupName` | App teams (as AllowedCognitoGroup) |
 | `CognitoAppUsername` | App teams (create after deploy - see setup) |
 | `CognitoAppPassword` | App teams (create after deploy - see setup) |
