@@ -15,6 +15,7 @@ Shared infrastructure template for serverless applications. Deployed once by the
 
 ## What it does NOT create
 
+- Per-app Cognito App Client - created by app team's template
 - Per-app Secrets Manager secrets - created by app team's template
 - Per-app schemas - auto-created by app team's Lambda on first request
 
