@@ -125,7 +125,6 @@ All teams receive the same values:
 
 ```
 CognitoUserPoolId:    <from stack outputs>
-CognitoUserPoolArn:   <from stack outputs>
 AllowedCognitoGroup:  app-user-group
 VpcId:                <from stack outputs>
 PrivateSubnetIds:     <from stack outputs>
