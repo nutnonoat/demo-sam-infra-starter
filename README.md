@@ -67,7 +67,7 @@ sam deploy             # subsequent deploys
 
 SAM prompts for parameters interactively on first run and saves to `samconfig.toml`.
 
-## Adding custom tags
+## Deployment with custom tags
 
 To tag all resources in the stack (e.g., for cost tracking), two options:
 
