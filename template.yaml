@@ -427,11 +427,6 @@ Outputs:
     Value: !Ref CognitoUserPool
     Export:
       Name: !Sub "${Project}-${Environment}-CognitoUserPoolId"
-  CognitoUserPoolArn:
-    Description: Cognito User Pool ARN (provide to app teams)
-    Value: !GetAtt CognitoUserPool.Arn
-    Export:
-      Name: !Sub "${Project}-${Environment}-CognitoUserPoolArn"
   CognitoGroupName:
     Description: Cognito group name (provide to app teams as AllowedCognitoGroup)
     Value: app-user-group
